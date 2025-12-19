@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Crit Value Calculator</title>
+
+  <style>
+    :root {
+      font-family: Inter, system-ui, Arial;
+      --primary: #0ea5a4;
+      --bg: #f0f4f8;
+      --card-bg: #ffffff;
+      --text-dark: #0f172a;
+      --best: #fde68a;
+    }
+
+    body {
+      background: var(--bg);
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .card, .history-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.15);
+      padding: 24px;
+    }
+
+    .card {
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1, h2 {
+      margin-bottom: 14px;
+      color: var(--text-dark);
+      text-align: center;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      text-align: left;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      margin-bottom: 14px;
+      box-sizing: border-box;
+    }
+
+    .result {
+      background: var(--primary);
+      color: white;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 14px;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0c8c8b;
+    }
+
+    .history-card {
+      width: 300px;
+    }
+
+    .history-card input {
+      margin-bottom: 10px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      background: #e2e8f0;
+      border-radius: 10px;
+      padding: 8px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    li.best {
+      background: var(--best);
+      font-weight: bold;
+    }
+
+    .info {
+      flex: 1;
+    }
+
+    .name {
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .value {
+      font-size: 13px;
+      color: #334155;
+    }
+
+    .actions button {
+      width: 26px;
+      height: 26px;
+      font-size: 14px;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="card">
+    <h1>Crit Value Calculator</h1>
+
+    <label>Name (optional)</label>
+    <input id="name" placeholder="Build name">
+
+    <label>Crit Rate</label>
+    <input id="rate" type="number">
+
+    <label>Crit Damage</label>
+    <input id="dmg" type="number">
+
+    <div id="output" class="result">—</div>
+
+    <button id="addBtn">+</button>
+  </main>
+
+  <aside class="history-card">
+    <h2>History</h2>
+
+    <input id="search" placeholder="Search by name 🔍">
+
+    <ul id="historyList"></ul>
+  </aside>
+
+  <script>
+    const nameEl = document.getElementById('name');
+    const rateEl = document.getElementById('rate');
+    const dmgEl = document.getElementById('dmg');
+    const out = document.getElementById('output');
+    const addBtn = document.getElementById('addBtn');
+    const historyList = document.getElementById('historyList');
+    const searchEl = document.getElementById('search');
+
+    const STORAGE_KEY = 'crit_history_advanced';
+    let historyData = [];
+
+    function parseNumber(v) {
+      if (!v) return NaN;
+      return Number(String(v).replace(',', '.'));
+    }
+
+    function formatValue(v) {
+      return Number.isInteger(v) ? v : v.toFixed(4).replace(/\.?0+$/, '');
+    }
+
+    function calculate() {
+      const r = parseNumber(rateEl.value);
+      const d = parseNumber(dmgEl.value);
+      if (isNaN(r) && isNaN(d)) {
+        out.textContent = '—';
+        return null;
+      }
+      let val = isNaN(d) ? r * 2 : isNaN(r) ? d : (r * 2 + d);
+      out.textContent = formatValue(val);
+      return val;
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(historyData));
+    }
+
+    function load() {
+      historyData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      render();
+    }
+
+    function render() {
+      historyList.innerHTML = '';
+      const best = Math.max(...historyData.map(i => i.value), -Infinity);
+
+      historyData.forEach((item, index) => {
+        if (!item.name.toLowerCase().includes(searchEl.value.toLowerCase())) return;
+
+        const li = document.createElement('li');
+        if (item.value === best) li.classList.add('best');
+
+        li.innerHTML = `
+          <div class="info">
+            <div class="name" title="Click to edit">${item.name || 'Unnamed'}</div>
+            <div class="value">${formatValue(item.value)}</div>
+          </div>
+          <div class="actions">
+            <button title="Delete">🗑️</button>
+          </div>
+        `;
+
+        li.querySelector('.name').onclick = () => {
+          const newName = prompt('Edit name:', item.name);
+          if (newName !== null) {
+            item.name = newName.trim();
+            save();
+            render();
+          }
+        };
+
+        li.querySelector('button').onclick = () => {
+          historyData.splice(index, 1);
+          save();
+          render();
+        };
+
+        historyList.appendChild(li);
+      });
+    }
+
+    function addToHistory() {
+      const value = calculate();
+      if (value == null) return;
+
+      historyData.unshift({
+        name: nameEl.value.trim(),
+        value
+      });
+
+      save();
+      render();
+
+      nameEl.value = rateEl.value = dmgEl.value = '';
+      out.textContent = '—';
+    }
+
+    rateEl.oninput = dmgEl.oninput = calculate;
+    addBtn.onclick = addToHistory;
+    searchEl.oninput = render;
+
+    load();
+  </script>
+
+</body>
+</html>
