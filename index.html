@@ -289,20 +289,30 @@
             document.getElementById('check-healing').checked = settings.showHealing;
             updateVisibility();
         });
+function saveResult() {
+    if (currentTotal === 0) return alert("Please calculate a value first!");
 
-        function saveResult() {
-            if (currentTotal === 0) return alert("Please calculate a value first!");
-            let nameInput = document.getElementById('save-name').value.trim();
-            let savedData = JSON.parse(localStorage.getItem('artifactResults')) || [];
-            if (!nameInput) {
-                let counter = 1;
-                while (savedData.some(i => i.name == counter)) counter++;
-                nameInput = counter.toString();
-            }
-            savedData.push({ name: nameInput, value: formatNumber(currentTotal) });
-            localStorage.setItem('artifactResults', JSON.stringify(savedData));
-            loadSavedData();
-            document.getElementById('save-name').value = '';
+    let nameInput = document.getElementById('save-name').value.trim();
+    let savedData = JSON.parse(localStorage.getItem('artifactResults')) || [];
+
+    if (!nameInput) {
+        let counter = 1;
+        while (savedData.some(i => i.name == counter)) counter++;
+        nameInput = counter.toString();
+    }
+
+    savedData.push({ name: nameInput, value: formatNumber(currentTotal) });
+    localStorage.setItem('artifactResults', JSON.stringify(savedData));
+    loadSavedData();
+
+    /* 🔴 الجزء الجديد: تفريغ كل المربعات */
+    Object.keys(divisors).forEach(id => {
+        document.getElementById(id).value = '';
+    });
+
+    document.getElementById('save-name').value = '';
+    currentTotal = 0;
+    document.getElementById('total').innerText = 'Total Value: 0';
         }
 
         function loadSavedData() {
