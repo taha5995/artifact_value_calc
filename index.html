@@ -44,14 +44,12 @@
         }
         .close-alert:hover { opacity: 1; }
 
-        /* زر الزائد الصغير */
         .settings-btn {
             position: absolute; top: 20px; right: 20px; width: 30px; height: 30px;
             background: #007bff; color: white; border: none; border-radius: 50%;
             cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 100;
         }
 
-        /* فقاعة الخيارات */
         .settings-menu {
             display: none; position: absolute; top: 55px; right: 20px;
             background: white; border: 1px solid #ddd; border-radius: 8px;
@@ -123,7 +121,7 @@
         <div class="row"><label>Flat HP:</label><input type="number" id="flat_hp" step="any"></div>
         <div class="row"><label>Flat DEF:</label><input type="number" id="flat_def" step="any"></div>
 
-        <div id="total">Total Value: 0.000</div>
+        <div id="total">Total Value: 0</div>
 
         <div class="save-section">
             <input type="text" id="save-name" placeholder="Name (Optional)">
@@ -140,10 +138,15 @@
             'dmg_bonus': 0.7491961414790997, 'em': 3.006430868167203,
             'healing_bonus': 0.5771704180064309, 'def_percent': 0.9372990353697749,
             'flat_atk': 5.0, 'flat_hp': 76.84887459807074,
-            'flat_def': 3.962585034013606 // القيمة المعدلة المطلوبة
+            'flat_def': 3.962585034013606 
         };
 
         let currentTotal = 0;
+
+        function formatNumber(num) {
+            // تحويل الرقم لـ 3 خانات عشرية ثم إزالة الأصفار الزائدة من اليمين
+            return parseFloat(num.toFixed(3)).toString();
+        }
 
         function calculateTotal() {
             let totalValue = 0;
@@ -153,15 +156,13 @@
                 if (!isNaN(inputValue)) totalValue += inputValue / divisor;
             }
             currentTotal = totalValue;
-            // عرض 3 خانات فقط كما طلبت
-            document.getElementById('total').innerText = 'Total Value: ' + totalValue.toFixed(3);
+            document.getElementById('total').innerText = 'Total Value: ' + formatNumber(totalValue);
         }
 
         Object.keys(divisors).forEach(id => {
             document.getElementById(id).addEventListener('input', calculateTotal);
         });
 
-        // دوال القائمة والتحكم
         function toggleMenu(event) {
             event.stopPropagation();
             const menu = document.getElementById('settings-menu');
@@ -178,15 +179,21 @@
 
         window.onclick = function() { document.getElementById('settings-menu').style.display = 'none'; }
 
+        // وظائف إغلاق التنبيهات مع الحفظ
         function closeInfoBox() {
             document.getElementById('info-box').style.display = 'none';
             localStorage.setItem('hideArtifactInfoBox', 'true');
         }
-        function closeWarningBox() { document.getElementById('warning-box').style.display = 'none'; }
+        function closeWarningBox() {
+            document.getElementById('warning-box').style.display = 'none';
+            localStorage.setItem('hideArtifactWarningBox', 'true'); // حفظ حالة التحذير
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadSavedData();
+            // استعادة حالة التنبيهات
             if (localStorage.getItem('hideArtifactInfoBox') === 'true') document.getElementById('info-box').style.display = 'none';
+            if (localStorage.getItem('hideArtifactWarningBox') === 'true') document.getElementById('warning-box').style.display = 'none';
             
             const settings = JSON.parse(localStorage.getItem('visibilitySettings')) || { showDmg: false, showHealing: false };
             document.getElementById('check-dmg').checked = settings.showDmg;
@@ -194,7 +201,6 @@
             updateVisibility();
         });
 
-        // حفظ النتائج
         function saveResult() {
             if (currentTotal === 0) return alert("Please calculate a value first!");
             let nameInput = document.getElementById('save-name').value.trim();
@@ -204,7 +210,7 @@
                 while (savedData.some(i => i.name == counter)) counter++;
                 nameInput = counter.toString();
             }
-            savedData.push({ name: nameInput, value: currentTotal.toFixed(3) });
+            savedData.push({ name: nameInput, value: formatNumber(currentTotal) });
             localStorage.setItem('artifactResults', JSON.stringify(savedData));
             loadSavedData();
             document.getElementById('save-name').value = '';
