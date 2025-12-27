@@ -2,88 +2,179 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Artifact Value Calculator</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
-            background: #f0f2f5;
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --bg-color: #f0f2f5;
         }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 10px;
+            background: var(--bg-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 20px;
+            margin: 20px 0;
+            font-size: 1.8rem;
         }
+
         .container {
+            width: 95%;
             max-width: 500px;
-            margin: auto;
             background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
             position: relative;
+            box-sizing: border-box;
         }
         
         .alert-box {
-            padding: 12px 15px;
-            padding-left: 30px;
-            border-radius: 8px;
+            padding: 15px;
+            border-radius: 10px;
             margin-bottom: 15px;
-            font-size: 0.95em;
-            line-height: 1.5;
+            font-size: 0.9rem;
             text-align: right;
             direction: rtl;
             position: relative;
         }
-        .alert-info { background-color: #e3f2fd; color: #084298; border: 1px solid #b6d4fe; }
-        .alert-warning { background-color: #fff3cd; color: #664d03; border: 1px solid #ffecb5; }
-        .close-alert {
-            position: absolute; top: 5px; left: 10px; font-size: 1.2rem;
-            font-weight: bold; cursor: pointer; opacity: 0.5; transition: opacity 0.3s;
-        }
-        .close-alert:hover { opacity: 1; }
+        .alert-info { background: #e3f2fd; color: #084298; border: 1px solid #b6d4fe; }
+        .alert-warning { background: #fff3cd; color: #664d03; border: 1px solid #ffecb5; }
+        .close-alert { position: absolute; top: 10px; left: 10px; font-size: 1.4rem; cursor: pointer; }
 
         .settings-btn {
-            position: absolute; top: 20px; right: 20px; width: 30px; height: 30px;
-            background: #007bff; color: white; border: none; border-radius: 50%;
-            cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 100;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.4);
+            transition: transform 0.2s;
         }
+        .settings-btn:active { transform: scale(0.9); }
 
         .settings-menu {
-            display: none; position: absolute; top: 55px; right: 20px;
-            background: white; border: 1px solid #ddd; border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15); padding: 10px; z-index: 101; min-width: 150px;
+            display: none; 
+            position: fixed; 
+            bottom: 85px; 
+            right: 20px;
+            background: white; 
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2); 
+            padding: 15px; 
+            z-index: 1001; 
+            min-width: 180px;
         }
         .settings-menu label {
-            display: flex; align-items: center; gap: 10px; font-size: 0.9em;
-            cursor: pointer; padding: 5px 0; border-bottom: 1px solid #f0f0f0;
+            display: flex; align-items: center; gap: 12px; padding: 12px 0;
+            font-weight: 500; border-bottom: 1px solid #eee;
         }
-        .settings-menu label:last-child { border-bottom: none; }
-        .settings-menu input { flex: none; width: auto; }
 
         .row {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; padding-bottom: 5px; border-bottom: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 18px;
         }
         .hidden-row { display: none; }
 
-        label { flex: 1; font-weight: 600; color: #444; text-transform: capitalize; }
-        input { flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; text-align: right; }
-
-        #total {
-            text-align: center; font-weight: bold; font-size: 1.4em;
-            margin-top: 25px; padding: 15px; background: #e0e7ff;
-            color: #1e3a8a; border-radius: 8px; border: 2px solid #c7d2fe;
+        label {
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
         }
 
-        .save-section { margin-top: 20px; padding-top: 20px; border-top: 2px dashed #ccc; display: flex; gap: 10px; }
-        #save-name { flex: 2; text-align: left; }
-        #save-btn { flex: 1; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; padding: 10px; }
-        
-        .saved-list { margin-top: 20px; list-style: none; padding: 0; }
-        .saved-item { background: #f8f9fa; border: 1px solid #ddd; margin-bottom: 8px; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
-        .delete-btn { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+            -webkit-appearance: none;
+        }
+        input:focus { border-color: var(--primary-color); outline: none; }
+
+        #total {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.6rem;
+            margin: 25px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            color: #1e3a8a;
+            border-radius: 12px;
+        }
+
+        .save-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #eee;
+        }
+
+        #save-btn {
+            background: linear-gradient(135deg, #28a745, #218838);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .saved-list { margin-top: 20px; padding: 0; width: 100%; }
+        .saved-item {
+            background: #fff;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .delete-btn {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        @media (min-width: 400px) {
+            .row { flex-direction: row; justify-content: space-between; align-items: center; }
+            input[type="number"] { width: 60%; text-align: right; }
+            label { margin-bottom: 0; }
+        }
     </style>
 </head>
 <body>
@@ -92,43 +183,45 @@
     <div class="container">
         <div class="alert-box alert-info" id="info-box">
             <span class="close-alert" onclick="closeInfoBox()">&times;</span>
-            <strong>تنويه:</strong> تم انشاء هذا الموقع ليساعدك في اختيار الارتفاكت المناسب حيث يكشف لك قيمة القطعة كاملة.
+            <strong>تنويه:</strong> يساعدك الموقع في اختيار الارتفاكت المناسب عبر حساب قيمته كاملة.
         </div>
         
         <div class="alert-box alert-warning" id="warning-box">
             <span class="close-alert" onclick="closeWarningBox()">&times;</span>
-            <strong>تحذير مهم:</strong> متحسبش اي stat الشخصية مش بتسكيل بيه. 
+            <strong>تحذير مهم:</strong> لا تحسب الـ stats التي لا تستفيد منها شخصيتك. 
         </div>
 
-        <button class="settings-btn" onclick="toggleMenu(event)">+</button>
-        <div class="settings-menu" id="settings-menu">
-            <label><input type="checkbox" id="check-dmg" onchange="updateVisibility()"> Dmg Bonus</label>
-            <label><input type="checkbox" id="check-healing" onchange="updateVisibility()"> Healing Bonus</label>
-        </div>
+        <div class="row"><label>Crit Damage:</label><input type="number" id="crit_damage" placeholder="0"></div>
+        <div class="row"><label>Crit Rate:</label><input type="number" id="crit_rate" placeholder="0"></div>
+        <div class="row"><label>ATK%:</label><input type="number" id="atk_percent" placeholder="0"></div>
+        <div class="row"><label>HP%:</label><input type="number" id="hp_percent" placeholder="0"></div>
+        <div class="row"><label>ER:</label><input type="number" id="er" placeholder="0"></div>
 
-        <div class="row"><label>Crit Damage:</label><input type="number" id="crit_damage" step="any"></div>
-        <div class="row"><label>Crit Rate:</label><input type="number" id="crit_rate" step="any"></div>
-        <div class="row"><label>ATK%:</label><input type="number" id="atk_percent" step="any"></div>
-        <div class="row"><label>HP%:</label><input type="number" id="hp_percent" step="any"></div>
-        <div class="row"><label>ER:</label><input type="number" id="er" step="any"></div>
+        <div class="row hidden-row" id="row-dmg_bonus"><label>Dmg Bonus:</label><input type="number" id="dmg_bonus" placeholder="0"></div>
+        <div class="row hidden-row" id="row-healing_bonus"><label>Healing Bonus:</label><input type="number" id="healing_bonus" placeholder="0"></div>
 
-        <div class="row hidden-row" id="row-dmg_bonus"><label>Dmg Bonus:</label><input type="number" id="dmg_bonus" step="any"></div>
-        <div class="row hidden-row" id="row-healing_bonus"><label>Healing Bonus:</label><input type="number" id="healing_bonus" step="any"></div>
-
-        <div class="row"><label>EM:</label><input type="number" id="em" step="any"></div>
-        <div class="row"><label>DEF%:</label><input type="number" id="def_percent" step="any"></div>
-        <div class="row"><label>Flat ATK:</label><input type="number" id="flat_atk" step="any"></div>
-        <div class="row"><label>Flat HP:</label><input type="number" id="flat_hp" step="any"></div>
-        <div class="row"><label>Flat DEF:</label><input type="number" id="flat_def" step="any"></div>
+        <div class="row"><label>EM:</label><input type="number" id="em" placeholder="0"></div>
+        <div class="row"><label>DEF%:</label><input type="number" id="def_percent" placeholder="0"></div>
+        <div class="row"><label>Flat ATK:</label><input type="number" id="flat_atk" placeholder="0"></div>
+        <div class="row"><label>Flat HP:</label><input type="number" id="flat_hp" placeholder="0"></div>
+        <div class="row"><label>Flat DEF:</label><input type="number" id="flat_def" placeholder="0"></div>
 
         <div id="total">Total Value: 0</div>
 
         <div class="save-section">
-            <input type="text" id="save-name" placeholder="Name (Optional)">
-            <button id="save-btn" onclick="saveResult()">Save Result</button>
+            <label>Artifact Name:</label>
+            <input type="text" id="save-name">
+            <button id="save-btn" onclick="saveResult()">Save Artifact Result</button>
         </div>
 
         <ul id="saved-list" class="saved-list"></ul>
+    </div>
+
+    <button class="settings-btn" onclick="toggleMenu(event)">+</button>
+    <div class="settings-menu" id="settings-menu">
+        <p style="margin: 0 0 10px 0; font-weight: bold; font-size: 0.9rem; color: #666;">Show/Hide Stats:</p>
+        <label><input type="checkbox" id="check-dmg" onchange="updateVisibility()"> Dmg Bonus</label>
+        <label><input type="checkbox" id="check-healing" onchange="updateVisibility()"> Healing Bonus</label>
     </div>
 
     <script>
@@ -137,14 +230,12 @@
             'hp_percent': 0.7491961414790997, 'er': 0.8327974276527331,
             'dmg_bonus': 0.7491961414790997, 'em': 3.006430868167203,
             'healing_bonus': 0.5771704180064309, 'def_percent': 0.9372990353697749,
-            'flat_atk': 5.0, 'flat_hp': 76.84887459807074,
-            'flat_def': 3.962585034013606 
+            'flat_atk': 5.0, 'flat_hp': 76.84887459807074, 'flat_def': 5 
         };
 
         let currentTotal = 0;
 
         function formatNumber(num) {
-            // تحويل الرقم لـ 3 خانات عشرية ثم إزالة الأصفار الزائدة من اليمين
             return parseFloat(num.toFixed(3)).toString();
         }
 
@@ -172,26 +263,24 @@
         function updateVisibility() {
             const showDmg = document.getElementById('check-dmg').checked;
             const showHealing = document.getElementById('check-healing').checked;
-            document.getElementById('row-dmg_bonus').style.display = showDmg ? 'flex' : 'none';
-            document.getElementById('row-healing_bonus').style.display = showHealing ? 'flex' : 'none';
+            document.getElementById('row-dmg_bonus').style.display = showDmg ? (window.innerWidth > 400 ? 'flex' : 'block') : 'none';
+            document.getElementById('row-healing_bonus').style.display = showHealing ? (window.innerWidth > 400 ? 'flex' : 'block') : 'none';
             localStorage.setItem('visibilitySettings', JSON.stringify({ showDmg, showHealing }));
         }
 
         window.onclick = function() { document.getElementById('settings-menu').style.display = 'none'; }
 
-        // وظائف إغلاق التنبيهات مع الحفظ
         function closeInfoBox() {
             document.getElementById('info-box').style.display = 'none';
             localStorage.setItem('hideArtifactInfoBox', 'true');
         }
         function closeWarningBox() {
             document.getElementById('warning-box').style.display = 'none';
-            localStorage.setItem('hideArtifactWarningBox', 'true'); // حفظ حالة التحذير
+            localStorage.setItem('hideArtifactWarningBox', 'true');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadSavedData();
-            // استعادة حالة التنبيهات
             if (localStorage.getItem('hideArtifactInfoBox') === 'true') document.getElementById('info-box').style.display = 'none';
             if (localStorage.getItem('hideArtifactWarningBox') === 'true') document.getElementById('warning-box').style.display = 'none';
             
